@@ -1,29 +1,46 @@
+
+//Initializes the counter variables
 var correct = 0;
 var incorrect = 0;
 var unanswered = 0;
-var currentQuestionObject;
+var currentQuestion;
+var questionArray;
 
+
+//Creates objects for questions and answers, and a permenant array to hold them for easy access
 var swallow = new triviaQuestion("What is the airspeed velocity of an unladen swallow?", "What do you mean - African or European swallow?",
 	"13 KPH", "Monty", "Python", this.a1, "http://thelittle.org/sites/default/files/imges/film/2.COLOR_galloping%20knights.jpg");
 
-var sherman - new triviaQuestion("On December 21, 1864, General Sherman’s famous “March to the Sea” concluded with the capture of what Southern city?",
+var sherman = new triviaQuestion("On December 21, 1864, General Sherman’s famous “March to the Sea” concluded with the capture of what Southern city?",
 	"Atlanta", "Charleston", "Savannah", "Montgomery", this.a3, "http://amstudjh56.weebly.com/uploads/2/5/0/4/25048322/1714752.jpg?922");
 
 var ribs = new triviaQuestion("On the human body, the intercostal muscles are located where?", "The hands", "The ribs", 
 	"The knees", "The hips", this.a2, "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/1114_Thorax_zoom.png/300px-1114_Thorax_zoom.png");
 
-var questionArray =[swallow, sherman, ribs];
+var permArray = [swallow, sherman, ribs];
 
+//Constructor for question objects
+function triviaQuestion (question, a1, a2, a3, a4, correct, img){
+	this.question = question,
+	this.a1 = a1,
+	this.a2 = a2,
+	this.a3 = a3,
+	this.a4 = a4,
+	this.correct = correct,
+	this.img = img
+}
+
+//Controls the on-screen timer
 var timer = {
 	timeLeft: 15;
 
 	countDown: function(){
-		tickTock = setInterval(timer.callBack, 1000)
+		tickTock = setInterval(timer.callBack, 1000);
 	};
 
 	callBack: function(){
 		timer.timeLeft--;
-		$("#timeDiv").html("<p>Time Remaining: " + timeLeft + " Seconds </p>")
+		$("#timeDiv").html("<p>Time Remaining: " + timeLeft + " Seconds </p>");
 	};
 
 	reset: function(){
@@ -31,31 +48,91 @@ var timer = {
 	}
 }
 
-function triviaQuestion (question, a1, a2, a3, a4, correct, img){
-	this.question = question;
-	this.a1 = a1;
-	this.a2 = a2;
-	this.a3 = a3;
-	this.a4 = a4;
-	this.correct = correct;
-	this.img = img
-}
-
+//Starts the next question, and fire the Game Over sequence if there are no new questions left
 function newQuestion(){
-	currentQuestion = questionArray[getRandomInt(questionArray.length)];
+	//Ends the current game if there are no more new questions
+	if(questionArray.length < 1){
+		return endGame();
+	}
+	//Selects a random question from the array of remaining questions
+	//By splicing the selected question out of questionArray, we can hold it for temporary use in currentQuestion,
+	//...and ensure that it is not used again during this game.
+	var randomIndex = getRandomInt(questionArray.length);
+	currentQuestion = questionArray.splice(randomIndex, 1)
+
+	//Resets and starts the timer
 	timer.reset();
 	timer.countDown();
-	$("#questionDiv").html(currentQuestion);
+
+	//Appends the current question and answer choices to the main div
+	$("#questionDiv").append("<h2 class='text-center'>" + currentQuestion.question "</h2>");
 	for (var i = 1; i <= 4; i++){
-		var a = currentQuestionObject["a" + i]
-		$("#answerDiv").append(a).data(a);
+		var a = currentQuestion["a" + i];
+		$("#answerDiv").append("<a href=#><p class='text-center'>" + a  + "</p></a>").data("answer", a);
+		// $("#answerDiv").append(a).data(a);
 	}
-	$("#questionDiv").data(currentQuestion);
+	// $("#questionDiv").data(currentQuestion);
 }
 
+//Generates a random integer exclusive of MAX
 function getRandomInt(max) {
-	return Math.floor(Math.random() * max)
+	return Math.floor(Math.random() * max);
 }
+
+//Handles the end of each question, whether triggered by a guess (correct or incorrect), or the expiration time.
+function endQuestion(message, wrong){
+	clearInterval(tickTock);
+	$("#questionDiv").html(message);
+	$("#answerDiv").empty();
+	if(wrong){$("#answerDiv").append("<p>The correct answer was: " + currentQuestion.correct + "</p>")};
+	$("#answerDiv").append("<img class=text-center src=>'" + currentQuestion.img + "'</img>");
+}
+
+//Handles the end of the game
+function endGame(){
+	clearInterval(tickTock);
+	$("#questionDiv").html("Game Over!  Your Results:");
+	$("#answerDiv").empty();
+	$("#answerDiv").append("<p>Correct answers: " + correct + "</p>");
+	$("#answerDiv").append("<p>Incorrect answers: " + incorrect + "</p>");
+	$("#answerDiv").append("<p>Unanswered questions: " + unanswered + "</p>");
+	$("#main").append("<button type='button' class='btn btn-primary btn-lg center-block'>Start over?</button>")
+
+}
+
+//Game logic---------------------------------------------
+
+$(".button").on("click", function(){
+	questionArray = permArray.slice(0);
+	$("#main").clear();
+	$("#main").append("<div class= 'text-center' id='timeDiv'></div>");
+	$("#main").append("<div class= 'text-center' id='questionDiv'></div>");
+	$("#main").append("<div class= 'text-center' id='answerDiv'></div>");
+	newQuestion();
+})
+
+$("p").on("click", function(){
+	//Correct answer selected
+	if($(this).data("answer") == currentQuestion.correct){
+		endQuestion("Correct!");
+		correct++;
+	}
+
+	else{
+		endQuestion("Wrong!", true);
+		incorrect++;
+	}
+
+	var startAgain = window.setTimeout(newQuestion, 4000);
+});
+
+if (timer.timeLeft < 1){
+	endQuestion("Out of Time!", true);
+	unanswered++;
+	var startAgain = window.setTimeout(newQuestion, 4000);
+}
+
+
 
 
 
