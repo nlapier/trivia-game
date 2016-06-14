@@ -78,8 +78,25 @@ function newQuestion(){
 	//Appends the current answer choices
 	for (var i = 1; i <= 4; i++){
 		var a = currentQuestion["a" + i.toString()];
-		$("#answerDiv").append("<a href=#><p class='text-center'>" + a  + "</p></a>").data("answer", a);
+		$("#answerDiv").append("<div><button class='btn btn-default answerButton' type='submit'>" + a  + "</button></div>").data("answer", a);
+	} 
+
+	$(".answerButton").on("click", function(){
+	//Correct answer selected
+	console.log("click")
+	if($(this).data("answer") == currentQuestion[currentQuestion.correct]){
+		endQuestion("Correct!");
+		correct++;
 	}
+
+	else{
+		endQuestion("Wrong!", true);
+		incorrect++;
+	}
+
+	var startAgain = window.setTimeout(newQuestion, 4000);
+	});
+
 }
 
 //Generates a random integer exclusive of MAX
@@ -105,27 +122,14 @@ function endGame(){
 	$("#answerDiv").append("<p>Correct answers: " + correct + "</p>");
 	$("#answerDiv").append("<p>Incorrect answers: " + incorrect + "</p>");
 	$("#answerDiv").append("<p>Unanswered questions: " + unanswered + "</p>");
-	$("#main").append("<button type='button' class='btn btn-primary btn-lg center-block'>Start over?</button>")
+	$("#main").append("<button type='button' class='btn btn-primary btn-lg center-block startGame'>Start over?</button>");
 }
 
 //Game logic---------------------------------------------
 
-$(".btn").on("click", function(){newQuestion()});
+$(".startGame").on("click", function(){newQuestion()});
 
-$("p").on("click", function(){
-	//Correct answer selected
-	if($(this).data("answer") == currentQuestion[currentQuestion.correct]){
-		endQuestion("Correct!");
-		correct++;
-	}
 
-	else{
-		endQuestion("Wrong!", true);
-		incorrect++;
-	}
-
-	var startAgain = window.setTimeout(newQuestion, 4000);
-});
 
 
 
